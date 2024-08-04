@@ -1,0 +1,184 @@
+body {
+    font-family: Georgia, serif;
+    background: url('1.png') no-repeat center center fixed;
+    background-size: cover;
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+}
+/* h1 {
+    text-align: center;
+    margin: 20px 0;
+    padding: 10px;
+    border: 3px solid #ff0000;
+    border-radius: 10px;
+} */
+h1 {
+    text-align: center;
+    margin: 40px 0 50px 0;
+    font-size: 35px;
+    color: rgb(255, 187, 0); /* رنگ متن اصلی */
+    text-shadow: 
+        2px 2px 0 #ff0000,   /* سایه قرمز به سمت راست و پایین */
+        -2px -2px 0 #000000, /* سایه سبز به سمت چپ و بالا */
+        2px -2px 0 #0000ff,  /* سایه آبی به سمت راست و بالا */
+        -2px 2px 0 #ffff0000;  /* سایه زرد به سمت چپ و پایین */
+}
+.container {
+    margin: 50px auto; /* کاهش فاصله از بالا به میزان 2 سانتیمتر */
+    width: 50%;
+    background-color: rgba(0, 0, 0, 0.849);
+    padding: 15px;
+    border-radius: 5px;
+    position: relative; /* برای موقعیت‌دهی لوگو */
+}
+
+h1 {
+    text-align: center;
+    margin: 78px 0 50px 0; /* کاهش فاصله از بالا به میزان 2 سانتیمتر */
+}
+
+form {
+    margin-bottom: 50px;
+}
+
+.form-row {
+    display: flex;
+    justify-content: space-between; /* فاصله‌ی یکنواخت بین باکس‌ها */
+    margin-bottom: 20px;
+}
+
+.form-item {
+    flex: 1;
+    margin-right: 10px; /* فاصله افقی بین باکس‌ها */
+}
+
+.form-item:last-child {
+    margin-right: 0; /* حذف فاصله برای آخرین باکس */
+}
+
+.form-item label {
+    display: block;
+    margin-bottom: 8px;
+    text-align: center; /* مرکز کردن متن تیتر */
+}
+
+.form-item input, .form-item select {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.form-item.small-input {
+    max-width: 200px; /* حداکثر عرض باکس‌ها */
+}
+
+.button-container {
+    display: flex;
+    justify-content: center; /* مرکز کردن دکمه‌ها */
+    gap: 250px; /* فاصله بین دکمه‌ها */
+    margin-top: 30px; /* فاصله از بالا */
+}
+
+button {
+    background-color: #007BFF; /* رنگ پس‌زمینه دکمه */
+    color: white; /* رنگ متن سفید */
+    border: none; /* حذف حاشیه دکمه */
+    cursor: pointer; /* تغییر نشانگر موس به دست */
+    border-radius: 5px; /* گرد کردن گوشه‌های دکمه */
+    padding: 10px 20px; /* فضای داخلی دکمه */
+    font-size: 14px; /* اندازه فونت متن دکمه */
+    display: inline-block; /* نمایش دکمه به صورت بلوکی در خط */
+}
+
+button:hover {
+    background-color: #002752; /* تغییر رنگ پس‌زمینه هنگام هاور */
+}
+
+#log {
+    margin-top: 5px;
+}
+
+#log-content {
+    background-color: #222;
+    padding: 20px;
+    height: 150px;
+    overflow-y: scroll;
+    white-space: pre-wrap;
+    border-radius: 5px;
+    color: #0f0;
+}
+
+#results-table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+}
+
+#results-table th, #results-table td {
+    border: 1px solid #e5ff009d;
+    padding: 8px;
+    text-align: center; /* مرکز کردن متن جدول */
+}
+
+#results-table th {
+    background-color: #07013586;
+}
+
+/* تنظیم عرض ثابت برای هر ستون */
+#results-table .ip-col {
+    width: 40%;
+}
+
+#results-table .speed-col {
+    width: 35%;
+}
+
+#results-table .ping-col {
+    width: 25%;
+}
+
+/* جلوگیری از برش متن در جدول */
+#results-table td, #results-table th {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* استایل برای لوگو */
+.logo-container {
+    position: absolute; /* موقعیت‌دهی لوگو */
+    top: 0; /* موقعیت بالای باکس اصلی */
+    left: 50%; /* وسط‌چین کردن لوگو افقی */
+    transform: translateX(-50%); /* وسط‌چین کردن دقیق‌تر لوگو */
+    z-index: 10; /* بالاتر از سایر عناصر */
+    margin-top: 250px; /* فاصله از بالای باکس اصلی، کاهش 2 سانتی‌متر */
+    text-align: center; /* مرکز کردن لوگو */
+}
+
+.logo {
+    width: 200px; /* عرض لوگو */
+    height: 200px; /* ارتفاع لوگو */
+    border-radius: 50%; /* گرد کردن لوگو به صورت دایره */
+    border: 0px solid rgb(0, 0, 0); /* حاشیه سفید دور لوگو */
+}
+
+/* موقعیت‌دهی دقیق دکمه‌ها */
+.button-container {
+    margin-top: 50px; /* فاصله از بالا برای قرار گرفتن زیر لوگو، کاهش 2 سانتی‌متر */
+}
+.status-message {
+    text-align: center;
+    font-size: 18px;
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+#start-message {
+    color: #00d9ff; /* رنگ نارنجی برای پیام شروع */
+}
+
+#complete-message {
+    color: #00ff00; /* رنگ سبز برای پیام پایان */
+}
+
