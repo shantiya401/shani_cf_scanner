@@ -5,6 +5,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IP Scanner</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .log-ok { color: green; }
+        .log-failed { color: red; }
+        .status-message {
+            margin-top: 20px;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+        }
+        .status-container {
+            text-align: center;
+            position: relative;
+            margin-top: 20px; /* فاصله از لوگو */
+        }
+        .loader {
+            width: 80%; /* تنظیم عرض نوار لودینگ */
+            height: 6px; /* تنظیم ارتفاع نوار لودینگ */
+            background: #f3f3f3;
+            border-radius: 5px;
+            margin: 10px auto; /* مرکز کردن نوار لودینگ */
+            position: relative;
+            overflow: hidden; /* اطمینان از اینکه نوار متحرک از باکس بیرون نزند */
+        }
+        .loader::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -50%;
+            height: 100%;
+            width: 50%;
+            background: #3498db;
+            animation: loading 1.5s infinite; /* سرعت انیمیشن را کمتر کنیم */
+            border-radius: 5px;
+        }
+        @keyframes loading {
+            0% { left: -50%; }
+            100% { left: 100%; }
+        }
+        #results-table {
+            margin-top: 20px;
+            width: 100%;
+            border-collapse: collapse;
+        }
+        #results-table th, #results-table td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+        .copy-btn {
+            margin-left: 5px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -17,6 +69,7 @@
                 <div class="form-item">
                     <label for="selected_ip_range">IP Range:</label>
                     <select id="selected_ip_range" name="selected_ip_range">
+                        <option value="random">Random</option>
                         {% for ip_range in cf_ips %}
                         <option value="{{ ip_range }}">{{ ip_range }}</option>
                         {% endfor %}
@@ -41,9 +94,16 @@
                 <button type="button" onclick="startScan()">Start Scan</button>
                 <button type="button" onclick="stopScan()">Stop Scan</button>
             </div>
-            <div class="status-message" id="start-message" style="display: none;">Shani Scanner is starting...</div>
-            <div class="status-message" id="complete-message" style="display: none;">Shani Scan is complete...</div>
         </form>
+        <div class="status-container">
+            <div class="status-message" id="start-message">
+                Shani Scanner is starting...
+                <div class="loader"></div>
+            </div>
+            <div class="status-message" id="complete-message">
+                Shani Scan is complete...
+            </div>
+        </div>
         <div id="log">
             <h2>Log:</h2>
             <pre id="log-content"></pre>
@@ -54,6 +114,7 @@
                     <th class="ip-col">IP</th>
                     <th class="ping-col">Ping (ms)</th>
                     <th class="speed-col">Speed (MB/s)</th>
+                    <th class="copy-col">Copy</th>
                 </tr>
             </thead>
             <tbody>
@@ -61,19 +122,22 @@
         </table>
     </div>
 
-
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
     <script>
         var socket = io();
         var scanning = false;
 
         socket.on('update', function(msg) {
-            if (!scanning) return;  // اگر اسکن متوقف شده باشد، هیچ داده‌ای دریافت و پردازش نمی‌شود.
+            if (!scanning) return;
             document.getElementById('log-content').innerHTML += msg + '<br>';
         });
 
         function startScan() {
             scanning = true;
+            document.getElementById('start-message').style.display = 'block';
+            document.getElementById('complete-message').style.display = 'none';
+            document.getElementById('log-content').innerHTML = '';
+
             let form = document.getElementById('scan-form');
             let formData = new FormData(form);
 
@@ -86,38 +150,62 @@
                 if (!scanning) return;
 
                 let resultsTable = document.querySelector('#results-table tbody');
-                resultsTable.innerHTML = ''; // ریست کردن جدول
+                resultsTable.innerHTML = '';
+
+                let num_ips = parseInt(document.getElementById('num_ips').value);
+                let ipCount = 0;
 
                 data.results.forEach(result => {
-                    let row = `<tr><td>${result.ip}</td><td>${result.ping}</td><td>${result.speed}</td></tr>`;
+                    if (ipCount >= num_ips) return;
+                    
+                    let row = `<tr>
+                        <td>${result.ip}</td>
+                        <td>${result.ping}</td>
+                        <td>${result.speed}</td>
+                        <td><button class="copy-btn" onclick="copyIp('${result.ip}')">Copy</button></td>
+                    </tr>`;
                     resultsTable.innerHTML += row;
+                    ipCount++;
                 });
 
                 data.details.forEach(detail => {
-                    if (detail.includes('failed') || detail.includes('rejected')) {
-                        document.getElementById('log-content').innerHTML += `<span class="log-failed">${detail}</span><br>`;
+                    if (detail.status === 'failed' || detail.status === 'rejected') {
+                        document.getElementById('log-content').innerHTML += `<span class="log-failed">${detail.message}</span><br>`;
                     } else {
-                        document.getElementById('log-content').innerHTML += `<span class="log-ok">${detail}</span><br>`;
+                        document.getElementById('log-content').innerHTML += `<span class="log-ok">${detail.message}</span><br>`;
                     }
                 });
+
+                if (ipCount >= num_ips) {
+                    scanning = false;
+                    document.getElementById('start-message').style.display = 'none';
+                    document.getElementById('complete-message').style.display = 'block';
+                }
             })
             .catch(error => console.error('Error:', error));
         }
 
         function stopScan() {
-            scanning = false;  // اسکن را متوقف می‌کند.
+            scanning = false;
             document.getElementById('log-content').innerHTML += '<span class="log-failed">Scan stopped by user.</span><br>';
 
-            // Resetting the scan process
             fetch('/stop_scan', {
                 method: 'POST'
             })
             .then(() => {
-                // ریست کردن تمام موارد مرتبط با اسکن
                 document.querySelector('#results-table tbody').innerHTML = '';
                 document.getElementById('log-content').innerHTML = '';
+                document.getElementById('start-message').style.display = 'none';
             })
             .catch(error => console.error('Error:', error));
+        }
+
+        function copyIp(ip) {
+            navigator.clipboard.writeText(ip).then(() => {
+                alert('IP copied to clipboard');
+            }).catch(err => {
+                console.error('Could not copy IP: ', err);
+            });
         }
     </script>
 </body>
