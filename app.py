@@ -4,15 +4,16 @@ import subprocess
 import ipaddress
 import requests
 import time
+import random
 
 app = Flask(__name__)
 socketio = SocketIO(app)
 
 cf_ips = [
-    '104.24.0.0/14', '173.245.48.0/20', '103.21.244.0/22', '103.22.200.0/22', '103.31.4.0/22',
-    '141.101.64.0/18', '108.162.192.0/18', '190.93.240.0/20', '188.114.96.0/20',
-    '197.234.240.0/22', '198.41.128.0/17', '162.158.0.0/15', '104.16.0.0/13',
-    '172.64.0.0/13', '131.0.72.0/22'
+    '104.16.168.197', '104.16.168.96', '104.16.168.5', '104.16.168.208', '104.16.168.191',
+    '104.22.29.227', '104.22.29.236', '104.22.29.45', '104.22.29.221', '104.22.29.189',
+    '172.67.56.90', '172.67.56.167', '172.67.56.104', '172.67.56.190', '172.67.56.244',
+    '104.18.131.98', '104.18.131.223', '104.18.131.100', '104.18.131.216', '104.18.131.37'
 ]
 
 def ping(ip):
@@ -43,10 +44,9 @@ def speed_test(ip, url):
 @app.route('/')
 def index():
     url = 'https://speed.cloudflare.com/__down?bytes=10485760'
-    selected_ip_range = cf_ips[0]
     num_ips = 5
     max_ping = 1000
-    return render_template('index.html', cf_ips=cf_ips, selected_ip_range=selected_ip_range, num_ips=num_ips, max_ping=max_ping, test_url=url)
+    return render_template('index.html', cf_ips=cf_ips, num_ips=num_ips, max_ping=max_ping, test_url=url)
 
 @app.route('/start_scan', methods=['POST'])
 def start_scan():
@@ -55,14 +55,15 @@ def start_scan():
     num_ips = int(request.form.get('num_ips', 5))
     max_ping = int(request.form.get('max_ping', 1000))
 
-    ip_network = ipaddress.ip_network(selected_ip_range)
-    available_ips = list(ip_network.hosts())
+    if selected_ip_range == 'random':
+        selected_ips = random.sample(cf_ips, min(num_ips, len(cf_ips)))
+    else:
+        selected_ips = [selected_ip_range]
+
     results = []
     scan_details = []
 
-    healthy_ips = []
-
-    for ip in available_ips:
+    for ip in selected_ips:
         ping_time = ping(str(ip))
         if ping_time is None:
             msg = f'testing {ip} Request timed out. (100% loss)'
@@ -78,12 +79,8 @@ def start_scan():
             scan_details.append({'ip': str(ip), 'message': msg, 'status': 'ok'})
             socketio.emit('update', f'<span style="color:green;">{msg}</span>')
             results.append({'ip': str(ip), 'ping': ping_time, 'speed': speed})
-            healthy_ips.append(str(ip))
-            if len(healthy_ips) >= num_ips:
-                break
 
     return jsonify({'results': results, 'details': scan_details})
-
 
 
 @app.route('/test_ping', methods=['POST'])
@@ -125,6 +122,7 @@ def test_speed():
         details.append(f'Speed test for {ip}: {speed} MB/s')
 
     return jsonify({'results': results, 'details': details})
+
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, allow_unsafe_werkzeug=True)
